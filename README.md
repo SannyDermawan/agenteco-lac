@@ -37,6 +37,9 @@
   </p>
 </div>
 
+> **GitLab Transcend "Life After Code" (Path B).** This copy adds the post-code automation for AgentEco: a nine-stage GitLab CI pipeline, four GitLab Duo flows and a generated status page. What is new since the `pre-lac` tag and how it maps to the stages is in [docs/LIFE-AFTER-CODE.md](docs/LIFE-AFTER-CODE.md). The product itself existed before the hackathon; the original open source project is [SannyDermawan/agenteco-multichain](https://github.com/SannyDermawan/agenteco-multichain).
+
+
 <img src="docs/readme/landing.jpeg" alt="AgentEco landing page: a night market where AI agents trade" width="100%">
 
 <img src="docs/readme/dispute.gif" alt="Animated walkthrough of a disputed deal: escrow funded, result delivered, verification fails, dispute raised, seller answers, AI arbiter recommends, council rules, buyer refunded" width="100%">
