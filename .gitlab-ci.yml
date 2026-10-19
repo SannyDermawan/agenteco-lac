@@ -1,0 +1,272 @@
+# AgentEco post-code automation (GitLab Transcend "Life After Code", Path B).
+#
+# Every stage of the DevSecOps loop that used to be manual for this project now runs here:
+#   configure -> verify -> package -> test (security scanners) -> secure (findings summary)
+#   -> govern -> release (GitLab Pages, manual Cloud Run) -> monitor (health checks, incident issues)
+# The AI parts (merge request review, issue triage, security explanations) run as GitLab Duo
+# Agent Platform flows, defined in .gitlab/duo/ (see docs/LIFE-AFTER-CODE.md).
+
+stages:
+  - configure
+  - verify
+  - package
+  - test # GitLab's SAST, secret detection and dependency scanning templates run in this stage
+  - secure
+  - govern
+  - release
+  - monitor
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive # lib/forge-std and lib/openzeppelin-contracts
+  GIT_DEPTH: "0"
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+  # The public AgentEco API, checked read-only by the monitor stage.
+  AGENTECO_API_URL: "https://agenteco-multichain-production.up.railway.app"
+
+default:
+  image: node:22-bookworm-slim
+  interruptible: true
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+.npm-cache: &npm-cache
+  key:
+    files: [agent-runtime/package-lock.json, backend/package-lock.json]
+  paths: [.npm/]
+  policy: pull-push
+
+.node-job:
+  before_script:
+    - npm config set cache "$CI_PROJECT_DIR/.npm" --global
+    - mkdir -p reports
+  cache: *npm-cache
+
+.not-scheduled:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
+# ---------------------------------------------------------------- configure
+configure:env-contract:
+  stage: configure
+  extends: .not-scheduled
+  script:
+    - node scripts/ci/check-env.mjs
+  artifacts:
+    when: always
+    paths: [reports/]
+
+# ---------------------------------------------------------------- verify
+verify:contracts:
+  stage: verify
+  extends: .not-scheduled
+  image:
+    name: ghcr.io/foundry-rs/foundry:stable
+    entrypoint: [""]
+  script:
+    - forge --version
+    - mkdir -p reports
+    # Output goes to a file first so a failing command fails the job (a pipe into tee would hide the exit code).
+    - forge build --sizes > reports/forge-build.log 2>&1 || { cat reports/forge-build.log; exit 1; }
+    - forge test > reports/forge-test.log 2>&1 || { tail -80 reports/forge-test.log; exit 1; }
+    - tail -3 reports/forge-test.log
+  artifacts:
+    when: always
+    paths: [reports/]
+
+verify:sdk:
+  stage: verify
+  extends: [.node-job, .not-scheduled]
+  script:
+    - npm ci --prefix agent-runtime
+    - npm run typecheck --prefix agent-runtime
+    - cd agent-runtime && node --import tsx --test --test-reporter=spec --test-reporter-destination=../reports/sdk-test.log --test-reporter=junit --test-reporter-destination=../reports/sdk-junit.xml "src/**/*.test.ts"
+  artifacts:
+    when: always
+    paths: [reports/]
+    reports:
+      junit: reports/sdk-junit.xml
+
+verify:backend:
+  stage: verify
+  extends: [.node-job, .not-scheduled]
+  script:
+    - npm ci --prefix agent-runtime --omit=dev
+    - npm ci --prefix backend --include=dev
+    - npm run typecheck --prefix backend
+    - cd backend && node --import tsx --test --test-reporter=spec --test-reporter-destination=../reports/backend-test.log --test-reporter=junit --test-reporter-destination=../reports/backend-junit.xml "src/**/*.test.ts"
+  artifacts:
+    when: always
+    paths: [reports/]
+    reports:
+      junit: reports/backend-junit.xml
+
+verify:cli:
+  stage: verify
+  extends: [.node-job, .not-scheduled]
+  script:
+    - npm ci --prefix agent-runtime --omit=dev
+    - npm ci --prefix cli
+    - npm run typecheck --prefix cli
+    - cd cli && node --import tsx --test --test-reporter=spec --test-reporter-destination=../reports/cli-test.log --test-reporter=junit --test-reporter-destination=../reports/cli-junit.xml "test/**/*.test.ts"
+  artifacts:
+    when: always
+    paths: [reports/]
+    reports:
+      junit: reports/cli-junit.xml
+
+verify:frontend:
+  stage: verify
+  extends: [.node-job, .not-scheduled]
+  variables:
+    NEXT_TELEMETRY_DISABLED: "1"
+  script:
+    - cd frontend
+    - npm ci
+    # Lint findings in existing code are reported, not blocking: they are work items for the Duo reviewer flow
+    # (docs/KNOWN-ISSUES.md). A failing build does fail the job.
+    - npx eslint . > ../reports/frontend-lint.log 2>&1 || echo "eslint reported findings, see reports/frontend-lint.log"
+    - npx next build > ../reports/frontend-build.log 2>&1 || { tail -60 ../reports/frontend-build.log; exit 1; }
+    - tail -5 ../reports/frontend-build.log
+  before_script:
+    - npm config set cache "$CI_PROJECT_DIR/.npm" --global
+    - mkdir -p reports
+  artifacts:
+    when: always
+    paths: [reports/]
+
+# ---------------------------------------------------------------- package
+package:sdk-and-cli:
+  stage: package
+  extends: [.node-job, .not-scheduled]
+  needs: [verify:sdk, verify:cli]
+  script:
+    - mkdir -p dist
+    - npm ci --prefix agent-runtime
+    - (cd agent-runtime && npm pack --pack-destination ../dist)
+    - npm ci --prefix cli
+    - npm run build --prefix cli
+    - (cd cli && npm pack --pack-destination ../dist)
+    - ls -l dist
+  artifacts:
+    paths: [dist/]
+    expire_in: 30 days
+
+package:contract-abis:
+  stage: package
+  extends: .not-scheduled
+  needs: [verify:contracts]
+  image:
+    name: ghcr.io/foundry-rs/foundry:stable
+    entrypoint: [""]
+  script:
+    - forge build
+    - mkdir -p dist/abi
+    - for c in AgentEco ArbiterCouncil MockUSDT; do cp "out/$c.sol/$c.json" "dist/abi/$c.json"; done
+    - ls -l dist/abi
+  artifacts:
+    paths: [dist/abi/]
+    expire_in: 30 days
+
+# ---------------------------------------------------------------- test (scanners from GitLab templates)
+# The templates add their own jobs (for example semgrep-sast, secret_detection, gemnasium-dependency_scanning)
+# and upload their findings as security reports on the merge request.
+sast:
+  variables:
+    SAST_EXCLUDED_PATHS: "lib, node_modules, frontend/.next, broadcast"
+
+# ---------------------------------------------------------------- secure
+secure:findings-summary:
+  stage: secure
+  extends: .not-scheduled
+  script:
+    - node scripts/ci/security-summary.mjs
+  artifacts:
+    when: always
+    paths: [reports/]
+    expose_as: "Security summary"
+
+# ---------------------------------------------------------------- govern
+govern:licenses-and-policy:
+  stage: govern
+  extends: .not-scheduled
+  script:
+    - node scripts/ci/license-check.mjs
+    - node scripts/ci/policy-check.mjs
+  artifacts:
+    when: always
+    paths: [reports/]
+
+# ---------------------------------------------------------------- release
+# Supervised autonomy: the public status site is published automatically from the default branch,
+# a human approves anything that touches a cloud environment.
+pages:
+  stage: release
+  needs:
+    - job: configure:env-contract
+    - job: verify:contracts
+    - job: verify:sdk
+    - job: verify:backend
+    - job: verify:cli
+    - job: verify:frontend
+    - job: secure:findings-summary
+    - job: govern:licenses-and-policy
+  script:
+    - node scripts/ci/build-pages.mjs
+  artifacts:
+    paths: [public/]
+  environment:
+    name: status-site
+    url: $CI_PAGES_URL
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+release:cloud-run:
+  stage: release
+  needs: [pages]
+  image: google/cloud-sdk:slim
+  script:
+    - test -n "$GCP_PROJECT_ID" && test -n "$GCP_SERVICE_ACCOUNT_KEY" || { echo "Cloud Run is not configured (GCP_PROJECT_ID, GCP_SERVICE_ACCOUNT_KEY)."; exit 1; }
+    - gcloud auth activate-service-account --key-file "$GCP_SERVICE_ACCOUNT_KEY"
+    - cp -r public deploy/cloud-run/public
+    - gcloud run deploy agenteco-status --project "$GCP_PROJECT_ID" --region "${GCP_REGION:-asia-southeast2}" --source deploy/cloud-run --allow-unauthenticated --quiet
+  environment:
+    name: cloud-run
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $GCP_PROJECT_ID
+      when: manual
+      allow_failure: true
+
+# ---------------------------------------------------------------- monitor
+# Runs after every deploy and on a pipeline schedule. A failed check opens (or updates) an incident issue.
+monitor:health:
+  stage: monitor
+  needs:
+    - job: pages
+      optional: true
+  script:
+    - node scripts/ci/health-check.mjs
+  artifacts:
+    when: always
+    paths: [reports/]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
