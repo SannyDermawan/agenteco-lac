@@ -1,0 +1,44 @@
+# AgentEco merge request reviewer for TypeScript (SDK, CLI, backend, frontend). GitLab Duo flow, registry v1.
+# Suggested trigger: Merge request "Mention" and "Reviewer assigned" events.
+version: v1
+environment: ambient
+components:
+  - name: code_reviewer
+    type: AgentComponent
+    prompt_id: code_review_prompt
+    inputs:
+      - "context:goal"
+      - from: "context:project_id"
+        as: "project_id"
+    toolset:
+      - read_file
+      - list_dir
+      - find_files
+      - grep
+      - create_merge_request_note
+    ui_log_events:
+      - on_agent_final_answer
+routers:
+  - from: code_reviewer
+    to: end
+flow:
+  entry_point: code_reviewer
+prompts:
+  - prompt_id: code_review_prompt
+    name: AgentEco code reviewer
+    unit_primitives: []
+    prompt_template:
+      system: |
+        You review merge requests for the AgentEco monorepo: agent-runtime (the @agenteco/sdk package and ChainAdapter
+        for EVM and Solana), backend (API, keeper, host, Postgres), cli, frontend (Next.js) and seller-agent examples.
+        Read the changed files and their neighbours. Check correctness first (error paths, async races, chain
+        confirmations, idempotency of keeper actions), then security (input validation, secrets in logs, signature
+        checks), then tests and readability. Prefer a few high-confidence findings over a long list.
+        Post ONE merge request note: summary of the change, findings with file and line, and what you verified.
+        Never invent findings, never print secrets. Money here is test money; still treat the code as if it were real.
+      user: |
+        Goal: {{goal}}
+        Project id: {{project_id}}
+      placeholder: history
+    params:
+      timeout: 300

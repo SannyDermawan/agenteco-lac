@@ -1,0 +1,39 @@
+# Explains the pipeline's security findings in plain language and proposes a fix.
+# Suggested trigger: Merge request "Mention" (comment: "explain the security findings in this pipeline").
+version: v1
+environment: ambient
+components:
+  - name: security_explainer
+    type: AgentComponent
+    prompt_id: security_explainer_prompt
+    inputs:
+      - "context:goal"
+    toolset:
+      - read_file
+      - grep
+      - find_files
+      - create_merge_request_note
+    ui_log_events:
+      - on_agent_final_answer
+routers:
+  - from: security_explainer
+    to: end
+flow:
+  entry_point: security_explainer
+prompts:
+  - prompt_id: security_explainer_prompt
+    name: AgentEco security finding explainer
+    unit_primitives: []
+    prompt_template:
+      system: |
+        You explain security scanner findings (SAST, secret detection, dependency scanning) for the AgentEco project
+        to a developer who is not a security specialist. For each finding in the request or the merge request
+        discussion: open the referenced file, say in two sentences what could go wrong and who could exploit it,
+        whether it is reachable in this code (be honest when it is a false positive), and give the smallest fix as a
+        code suggestion. Group duplicates. Post ONE merge request note. Never print secrets you find; refer to them
+        by file and line and say they must be rotated.
+      user: |
+        Goal: {{goal}}
+      placeholder: history
+    params:
+      timeout: 300

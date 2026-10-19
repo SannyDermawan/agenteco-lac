@@ -1,0 +1,5 @@
+# Every change needs a review from the maintainer; contracts and CI also get the Duo reviewer flows.
+* @sipmento782
+/contracts/ @sipmento782
+/.gitlab-ci.yml @sipmento782
+/.gitlab/ @sipmento782

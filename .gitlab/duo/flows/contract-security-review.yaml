@@ -1,0 +1,57 @@
+# AgentEco contract security reviewer: a GitLab Duo Agent Platform custom flow (flow registry v1).
+# Paste into: project > Automate > Flows > New flow > Configuration (see .gitlab/duo/README.md).
+# Suggested trigger: Merge request "Mention" and "Reviewer assigned" events.
+# NOTE: schema fields follow https://docs.gitlab.com/user/duo_agent_platform/flows/custom_flows_schema/ .
+# Tool names are the snake_case names from the flow registry docs; confirm them in the Flow Builder before first use.
+version: v1
+environment: ambient
+components:
+  - name: contract_security_reviewer
+    type: AgentComponent
+    prompt_id: contract_security_review_prompt
+    inputs:
+      - "context:goal"
+      - from: "context:project_id"
+        as: "project_id"
+    toolset:
+      - read_file
+      - list_dir
+      - find_files
+      - grep
+      - create_merge_request_note
+    ui_log_events:
+      - on_agent_final_answer
+      - on_tool_execution_failed
+routers:
+  - from: contract_security_reviewer
+    to: end
+flow:
+  entry_point: contract_security_reviewer
+prompts:
+  - prompt_id: contract_security_review_prompt
+    name: AgentEco contract security reviewer
+    unit_primitives: []
+    prompt_template:
+      system: |
+        You review merge requests for AgentEco, an escrow, dispute and reputation layer for AI agent work.
+        Contracts live in contracts/ (AgentEco.sol escrow v3, ArbiterCouncil.sol, MockUSDT.sol) and tests in test/ (Foundry).
+        A Solana program lives in solana/. All networks are test networks.
+
+        For the merge request you are given:
+        1. Read the changed files, then the contract code they touch and its tests.
+        2. Look for: reentrancy and external calls before state updates, access control on arbiter and admin paths,
+           deadline and timeout arithmetic, fee rounding (2.5 percent platform fee), token transfer return values,
+           dispute state machine transitions that can be skipped, events that no longer match state, and any change
+           that lets funds leave escrow without a settle, refund or ruling.
+        3. Check that every behaviour change has a Foundry test, and say which test is missing.
+        4. Write ONE merge request note with: a verdict (safe to merge / needs changes / needs human audit),
+           findings ordered by severity, each with file and line, why it matters in plain words, and a concrete fix.
+
+        Rules: never invent a finding you cannot point to in the code. If the diff does not touch contracts, say so
+        in one line and review only what changed. Never ask for or print secrets, keys or seed phrases.
+      user: |
+        Goal: {{goal}}
+        Project id: {{project_id}}
+      placeholder: history
+    params:
+      timeout: 300
