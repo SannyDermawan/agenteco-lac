@@ -77,7 +77,8 @@ node scripts/ci/license-check.mjs                 # dependency licenses
 
 - All networks AgentEco uses are test networks. No real funds.
 - The pipeline has run on GitLab (21 Oct 2026): configure, verify (228 tests), package, the four scanners and govern pass. The first GitLab run found real problems, fixed in follow-up commits: jobs that did not install the packages their typecheck compiles, a Foundry job that could not write to a root-owned folder, a stale CLI test, and a policy job without git.
-- The four Duo flows were created from the YAML in `.gitlab/duo/flows/` in the GitLab UI and enabled with the default Mention / Assign / Assign reviewer triggers; GitLab accepted the YAML. **No flow has run on a merge request yet**, and the tool names still have to be confirmed in the Flow Builder ([details](.gitlab/duo/README.md)).
+- The four Duo flows were created from the YAML in `.gitlab/duo/flows/` in the GitLab UI, enabled with the default Mention / Assign / Assign reviewer triggers, and each has run once on GitLab (two merge requests and one issue, all demo material). Each first run exposed a gap in the flow's own YAML (missing diff tools, missing project id) that was fixed; details and links in [.gitlab/duo/README.md](.gitlab/duo/README.md).
+- The security scanners report 237 findings on the first run (10 critical, dependency lockfiles for the most part). They are reported, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
 - Five lint errors in existing frontend code are reported by the pipeline, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
 
 ## Project history

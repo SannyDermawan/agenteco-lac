@@ -24,4 +24,13 @@ Requires the Developer role or higher and an active GitLab Duo Agent Platform tr
 
 The YAML follows the public schema page and the registry v1 conventions. Each flow was created from it in the GitLab UI (GitLab accepted all four) and enabled. Tool names are the snake_case form of the tools GitLab lists in the agent form (AI > Agents > New agent > Tools).
 
-First runs on GitLab (21 Oct 2026, merge requests !1 and !2 of this project, comment-only demo changes): the contract security reviewer and the code reviewer both started, ran and posted a note. The first version of their toolset had no way to read the merge request diff, so both said so and refused to guess; `get_merge_request` and `list_merge_request_diffs` were added afterwards. The issue triage and security finding explainer flows have not run yet.
+First runs on GitLab (21 Oct 2026), all four flows:
+
+| Flow | Where it ran | Result |
+|---|---|---|
+| contract security reviewer | [MR !1](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/1) | First run could not see the diff (the toolset had no diff tool) and said so. After adding `get_merge_request` and `list_merge_request_diffs` it read the diff and found a real inaccuracy in the added comment |
+| code reviewer | [MR !2](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) | Same limitation, same fix; the second run read the diff, checked callers and posted a review |
+| security finding explainer | [MR !2](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) | Grouped the ten critical findings of `main` and said which are reachable; suggested excluding vendored `lib/` from dependency scanning, which was applied |
+| issue triage | [issue #1](https://gitlab.com/agenteco-group/agenteco-lac/-/work_items/1) | First run failed because the flow was not given the project id (it said so and changed nothing). After adding `project_id` it labelled the test issue `bug` and `security` and posted one note telling the reporter to use a confidential issue |
+
+The MRs and the issue are demo material (comment-only changes, do not merge). Each flow's first run exposed a gap in its own YAML, which is why the YAML in this folder differs from the first version in the commit history.
