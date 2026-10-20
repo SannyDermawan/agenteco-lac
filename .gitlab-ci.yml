@@ -208,6 +208,9 @@ secure:findings-summary:
 govern:licenses-and-policy:
   stage: govern
   extends: .not-scheduled
+  before_script:
+    # policy-check.mjs lists tracked files with git, which the slim Node image does not ship.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git > /dev/null
   script:
     - node scripts/ci/license-check.mjs
     - node scripts/ci/policy-check.mjs
