@@ -3,7 +3,7 @@
 Submission for the GitLab Transcend "Life After Code" hackathon, Path B ("Bring Your Own"), Supervised autonomy.
 
 - Original open source project (MIT): https://github.com/SannyDermawan/agenteco-multichain
-- This GitLab project: https://gitlab.com/agenteco1/agenteco
+- This GitLab project: https://gitlab.com/agenteco-group/agenteco-lac
 - Baseline tag for "what existed before": `pre-lac` (commit `172edc3`, 17 Oct 2026, 150 commits since 24 Sep 2026)
 
 ## The problem

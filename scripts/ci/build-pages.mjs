@@ -31,7 +31,7 @@ const suites = [
 const reports = Object.fromEntries(['configure', 'security', 'licenses', 'policy'].map((n) => [n, readJson(`reports/${n}.json`)]))
 const securityMd = readText('reports/security-summary.md')
 
-const project = env.CI_PROJECT_URL ?? 'https://gitlab.com/agenteco1/agenteco'
+const project = env.CI_PROJECT_URL ?? 'https://gitlab.com/agenteco-group/agenteco-lac'
 const pipeline = env.CI_PIPELINE_URL ?? project
 const stages = [
   ['plan', 'Issue and merge request templates, Duo issue triage flow', `${project}/-/issues`],

@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 - Original open source project (MIT): [SannyDermawan/agenteco-multichain](https://github.com/SannyDermawan/agenteco-multichain)
-- GitLab project for this submission: [gitlab.com/agenteco1/agenteco](https://gitlab.com/agenteco1/agenteco)
+- GitLab project for this submission: [gitlab.com/agenteco-group/agenteco-lac](https://gitlab.com/agenteco-group/agenteco-lac)
 - What changed for this hackathon: [`pre-lac...main`](https://github.com/SannyDermawan/agenteco-lac/compare/pre-lac...main)
 - The full write-up, with the submission text and video script: [docs/LIFE-AFTER-CODE.md](docs/LIFE-AFTER-CODE.md)
 
@@ -76,8 +76,8 @@ node scripts/ci/license-check.mjs                 # dependency licenses
 ## Honest status
 
 - All networks AgentEco uses are test networks. No real funds.
-- The pipeline jobs were developed and run locally first: the Foundry, SDK, backend and CLI suites pass and the frontend production build succeeds. Pipeline runs and Duo flow runs on GitLab are linked from the status page once they exist.
-- The Duo flows follow the public schema. GitLab creates flows in its UI, and the tool names still have to be confirmed in the Flow Builder ([details](.gitlab/duo/README.md)).
+- The pipeline has run on GitLab (21 Oct 2026): configure, verify (228 tests), package, the four scanners and govern pass. The first GitLab run found real problems, fixed in follow-up commits: jobs that did not install the packages their typecheck compiles, a Foundry job that could not write to a root-owned folder, a stale CLI test, and a policy job without git.
+- The four Duo flows were created from the YAML in `.gitlab/duo/flows/` in the GitLab UI and enabled with the default Mention / Assign / Assign reviewer triggers; GitLab accepted the YAML. **No flow has run on a merge request yet**, and the tool names still have to be confirmed in the Flow Builder ([details](.gitlab/duo/README.md)).
 - Five lint errors in existing frontend code are reported by the pipeline, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
 
 ## Project history
