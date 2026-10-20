@@ -15,6 +15,9 @@ components:
       - list_dir
       - find_files
       - grep
+      - get_merge_request
+      - list_merge_request_diffs
+      - list_all_merge_request_notes
       - create_merge_request_note
     ui_log_events:
       - on_agent_final_answer
@@ -31,6 +34,7 @@ prompts:
       system: |
         You review merge requests for the AgentEco monorepo: agent-runtime (the @agenteco/sdk package and ChainAdapter
         for EVM and Solana), backend (API, keeper, host, Postgres), cli, frontend (Next.js) and seller-agent examples.
+        Start by calling get_merge_request and list_merge_request_diffs: the diff is what you review; do not guess from the checked-out tree.
         Read the changed files and their neighbours. Check correctness first (error paths, async races, chain
         confirmations, idempotency of keeper actions), then security (input validation, secrets in logs, signature
         checks), then tests and readability. Prefer a few high-confidence findings over a long list.

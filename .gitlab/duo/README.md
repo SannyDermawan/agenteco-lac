@@ -22,4 +22,6 @@ Requires the Developer role or higher and an active GitLab Duo Agent Platform tr
 
 ## Honest status
 
-The YAML follows the public schema page (version, environment, components, routers, flow, prompts) and the registry v1 conventions (`unit_primitives: []`, `placeholder: history`, `default` routes where used). It has not been executed on GitLab yet in this repository's history until a pipeline or merge request shows a flow run. Tool names (`read_file`, `grep`, `create_merge_request_note`, and the issue tools in `issue-triage.yaml`) must be confirmed in the Flow Builder, because GitLab lists the full tool registry only in the product.
+The YAML follows the public schema page and the registry v1 conventions. Each flow was created from it in the GitLab UI (GitLab accepted all four) and enabled. Tool names are the snake_case form of the tools GitLab lists in the agent form (AI > Agents > New agent > Tools).
+
+First runs on GitLab (21 Oct 2026, merge requests !1 and !2 of this project, comment-only demo changes): the contract security reviewer and the code reviewer both started, ran and posted a note. The first version of their toolset had no way to read the merge request diff, so both said so and refused to guess; `get_merge_request` and `list_merge_request_diffs` were added afterwards. The issue triage and security finding explainer flows have not run yet.

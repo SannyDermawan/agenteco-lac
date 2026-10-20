@@ -1,6 +1,6 @@
 # Triage for new work items: summarise, label and ask for what is missing.
 # Suggested trigger: "Work item created".
-# NOTE: confirm the issue tool names in the Flow Builder before use; they are not listed on the public schema page.
+# Tool names are the snake_case form of the tools GitLab lists in the agent form (AI > Agents > New agent > Tools).
 version: v1
 environment: ambient
 coding_environment: none
@@ -12,6 +12,7 @@ components:
       - "context:goal"
     toolset:
       - get_issue
+      - search_labels
       - update_issue
       - create_issue_note
     ui_log_events:

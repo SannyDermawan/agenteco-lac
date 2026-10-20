@@ -1,8 +1,8 @@
 # AgentEco contract security reviewer: a GitLab Duo Agent Platform custom flow (flow registry v1).
 # Paste into: project > Automate > Flows > New flow > Configuration (see .gitlab/duo/README.md).
 # Suggested trigger: Merge request "Mention" and "Reviewer assigned" events.
-# NOTE: schema fields follow https://docs.gitlab.com/user/duo_agent_platform/flows/custom_flows_schema/ .
-# Tool names are the snake_case names from the flow registry docs; confirm them in the Flow Builder before first use.
+# Schema: https://docs.gitlab.com/user/duo_agent_platform/flows/custom_flows_schema/
+# Tool names are the snake_case form of the tools GitLab lists in the agent form (AI > Agents > New agent > Tools).
 version: v1
 environment: ambient
 components:
@@ -18,6 +18,9 @@ components:
       - list_dir
       - find_files
       - grep
+      - get_merge_request
+      - list_merge_request_diffs
+      - list_all_merge_request_notes
       - create_merge_request_note
     ui_log_events:
       - on_agent_final_answer
@@ -38,7 +41,7 @@ prompts:
         A Solana program lives in solana/. All networks are test networks.
 
         For the merge request you are given:
-        1. Read the changed files, then the contract code they touch and its tests.
+        1. Call get_merge_request and list_merge_request_diffs first: the diff is what you review. Then read the contract code it touches and its tests.
         2. Look for: reentrancy and external calls before state updates, access control on arbiter and admin paths,
            deadline and timeout arithmetic, fee rounding (2.5 percent platform fee), token transfer return values,
            dispute state machine transitions that can be skipped, events that no longer match state, and any change
