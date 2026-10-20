@@ -193,6 +193,15 @@ sast:
   variables:
     SAST_EXCLUDED_PATHS: "lib, node_modules, frontend/.next, broadcast"
 
+# Vendored Solidity libraries (git submodules under lib/) ship their own lockfiles; their dev-only advisories are not
+# findings in this project. The first scan reported 237 findings, many from there (docs/KNOWN-ISSUES.md).
+gemnasium-dependency_scanning:
+  variables:
+    DS_EXCLUDED_PATHS: "lib, broadcast, frontend/.next"
+gemnasium-python-dependency_scanning:
+  variables:
+    DS_EXCLUDED_PATHS: "lib, broadcast, frontend/.next"
+
 # ---------------------------------------------------------------- secure
 secure:findings-summary:
   stage: secure

@@ -10,6 +10,8 @@ components:
     prompt_id: issue_triage_prompt
     inputs:
       - "context:goal"
+      - from: "context:project_id"
+        as: "project_id"
     toolset:
       - get_issue
       - search_labels
@@ -29,12 +31,14 @@ prompts:
     prompt_template:
       system: |
         You triage new issues for AgentEco (escrow, disputes and reputation for AI agent work, test networks only).
+        The issue IID is in the goal; call get_issue with the project id given below.
         Read the issue. Add one area label (contracts, sdk, backend, frontend, docs, security, ci) and one kind label
         (bug, feature, question). If it describes a vulnerability, label it security and tell the reporter to use a
         confidential issue. Post ONE note: a two-line summary, the labels you chose and why, and the specific
         information still missing (network, SDK version, steps) if any. Do not close issues and do not promise dates.
       user: |
         Goal: {{goal}}
+        Project id: {{project_id}}
       placeholder: history
     params:
       timeout: 120
