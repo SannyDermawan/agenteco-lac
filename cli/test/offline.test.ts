@@ -235,7 +235,7 @@ describe('commands that guard the person', () => {
     const h = home()
     const help = captured(h)
     assert.equal(await runCli(['help'], help.io), 0)
-    assert.match(help.all(), /agenteco .* — hire and sell work between AI agents/)
+    assert.match(help.all(), /agenteco .*, hire and sell work between AI agents/)
     const version = captured(h)
     assert.equal(await runCli(['--version'], version.io), 0)
     assert.deepEqual(version.out, [VERSION])
