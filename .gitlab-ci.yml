@@ -74,6 +74,8 @@ configure:env-contract:
 verify:contracts:
   stage: verify
   extends: .not-scheduled
+  # The foundry image runs as a non-root user; reports/ from the configure job would be root-owned and unwritable.
+  dependencies: []
   image:
     name: ghcr.io/foundry-rs/foundry:stable
     entrypoint: [""]
@@ -105,7 +107,7 @@ verify:backend:
   stage: verify
   extends: [.node-job, .not-scheduled]
   script:
-    - npm ci --prefix agent-runtime --omit=dev
+    - npm ci --prefix agent-runtime
     - npm ci --prefix backend --include=dev
     - npm run typecheck --prefix backend
     - cd backend && node --import tsx --test --test-reporter=spec --test-reporter-destination=../reports/backend-test.log --test-reporter=junit --test-reporter-destination=../reports/backend-junit.xml "src/**/*.test.ts"
@@ -119,7 +121,8 @@ verify:cli:
   stage: verify
   extends: [.node-job, .not-scheduled]
   script:
-    - npm ci --prefix agent-runtime --omit=dev
+    - npm ci --prefix agent-runtime
+    - npm ci --prefix backend --include=dev
     - npm ci --prefix cli
     - npm run typecheck --prefix cli
     - cd cli && node --import tsx --test --test-reporter=spec --test-reporter-destination=../reports/cli-test.log --test-reporter=junit --test-reporter-destination=../reports/cli-junit.xml "test/**/*.test.ts"
@@ -158,6 +161,7 @@ package:sdk-and-cli:
     - mkdir -p dist
     - npm ci --prefix agent-runtime
     - (cd agent-runtime && npm pack --pack-destination ../dist)
+    - npm ci --prefix backend --include=dev
     - npm ci --prefix cli
     - npm run build --prefix cli
     - (cd cli && npm pack --pack-destination ../dist)
