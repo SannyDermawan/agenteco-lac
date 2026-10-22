@@ -73,6 +73,21 @@ node scripts/ci/policy-check.mjs                  # repository policy rules
 node scripts/ci/license-check.mjs                 # dependency licenses
 ```
 
+## Evidence you can open
+
+Everything below is public on GitLab and was produced by the pipeline and the Duo flows, not typed in.
+
+| Claim | Where to look |
+|---|---|
+| The nine-stage pipeline runs, with history | [Pipelines](https://gitlab.com/agenteco-group/agenteco-lac/-/pipelines) (`main` is green) |
+| The status page is generated from the pipeline and stays up | [agenteco-group.gitlab.io/agenteco-lac](https://agenteco-group.gitlab.io/agenteco-lac/) |
+| The contract security reviewer read a diff and found a real inaccuracy | [Merge request !1](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/1) |
+| The code reviewer and the finding explainer ran on a merge request | [Merge request !2](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) |
+| The triage flow labelled an issue and asked for missing details | [Issue #1](https://gitlab.com/agenteco-group/agenteco-lac/-/work_items/1) |
+| What each flow got wrong on its first run, and the fix | [.gitlab/duo/README.md](.gitlab/duo/README.md) |
+
+The two merge requests and the issue are demo material: they are comment-only changes made to exercise the flows, and are left open on purpose (do not merge).
+
 ## Honest status
 
 - All networks AgentEco uses are test networks. No real funds.
