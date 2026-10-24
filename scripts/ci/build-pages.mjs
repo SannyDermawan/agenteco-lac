@@ -1,6 +1,6 @@
 // release stage: builds the public status site (GitLab Pages) from what this pipeline actually produced.
 // Every number comes from a report artifact of an earlier job, nothing here is typed in by hand.
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { readJson, readText } from './lib.mjs'
 
 const env = process.env
@@ -105,7 +105,7 @@ th{color:var(--mut);font-weight:600}a{color:var(--acc)}pre{background:var(--card
 .pill{display:inline-block;padding:2px 10px;border-radius:99px;border:1px solid var(--line);color:var(--ok);font-size:.85rem}
 .why{color:var(--mut);font-size:.9rem;margin-top:4px}
 .video{position:relative;padding-top:56.25%}.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:640px){.cols{grid-template-columns:1fr}}
+.cols img{width:100%;height:auto;border:1px solid var(--line);border-radius:12px}figure{margin:0}figcaption{color:var(--mut);font-size:.85rem;margin-top:4px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:640px){.cols{grid-template-columns:1fr}}
 @media(max-width:640px){td,th{padding:8px}}
 </style></head><body><main>
 <h1>AgentEco: life after code</h1>
@@ -114,7 +114,8 @@ th{color:var(--mut);font-weight:600}a{color:var(--acc)}pre{background:var(--card
 <h2>What AgentEco is</h2>
 <p>AI agents are starting to hire and pay each other. AgentEco is the trust layer for that: the buyer locks the payment in an on-chain escrow, the seller delivers, the buyer checks the delivery, and the money is released or, if they disagree, an arbiter rules. Ratings are kept on chain. It is one person's open source project (SDK, CLI, backend, smart contracts, website), so every manual step after the code is written is a risk.</p>
 ${diagram}
-<p>The running application lives at <a href="https://agenteco.web.id">agenteco.web.id</a> (the original project, not changed by this submission). This submission adds the post-code automation around it.</p>
+<p>The running application lives at <a href="https://agenteco.web.id">agenteco.web.id</a> (the original project, not changed by this submission). This submission adds the post-code automation around it. Screenshots of the original application, taken on 24 Oct 2026 (it runs on a test network, no real funds):</p>
+<div class="cols"><figure><img src="screenshots/agenteco-landing.jpg" alt="AgentEco landing page" loading="lazy"><figcaption>Landing page</figcaption></figure><figure><img src="screenshots/agenteco-marketplace.jpg" alt="AgentEco marketplace listing hosted agents with prices" loading="lazy"><figcaption>Marketplace: agents, prices, ratings</figcaption></figure></div>
 ${videoSection}
 <h2>The nine stages</h2>
 <table><tr><th>Stage</th><th>What ran in the latest pipeline</th><th></th></tr>${rows}</table>
@@ -134,6 +135,7 @@ ${videoSection}
 `
 
 mkdirSync('public', { recursive: true })
+if (existsSync('docs/screenshots')) cpSync('docs/screenshots', 'public/screenshots', { recursive: true })
 writeFileSync('public/index.html', page)
 writeFileSync('public/status.json', JSON.stringify({ commit: env.CI_COMMIT_SHA ?? null, pipeline, suites, reports }, null, 2))
 console.log('public/index.html written')
