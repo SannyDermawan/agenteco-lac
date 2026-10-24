@@ -38,16 +38,56 @@ const stages = [
   ['create', 'Duo merge request reviewer flows (TypeScript and Solidity)', `${project}/-/merge_requests?state=all`],
   ['verify', suites.map(([n, s]) => (s ? `${n}: ${s.tests - s.failures}/${s.tests}` : `${n}: n/a`)).join('; '), pipeline],
   ['package', 'SDK and CLI tarballs, contract ABIs as pipeline artifacts', pipeline],
-  ['secure', reports.security?.summary ?? 'Scanner summary not available', pipeline],
+  ['secure', (reports.security?.summary ?? 'Scanner summary not available') + (reports.security?.scanners?.some((x) => x.name === 'Dependency scanning' && !x.ran) ? '; dependency scanning produced no report in this pipeline, so these counts do not include dependency findings' : ''), pipeline],
   ['release', `Pages deploy from the default branch (this site, commit ${(env.CI_COMMIT_SHORT_SHA ?? '').slice(0, 8)}); Cloud Run job is manual`, `${project}/-/environments`],
   ['configure', reports.configure?.summary ?? 'n/a', pipeline],
   ['monitor', 'Health checks of the API and website after every deploy and on a schedule; failures open an incident issue', `${project}/-/issues?label_name[]=incident`],
   ['govern', [reports.licenses?.summary, reports.policy?.summary].filter(Boolean).join('; ') || 'n/a', pipeline],
 ]
 
+// One sentence per stage on why it matters for this project (static text, the numbers above stay generated).
+const why = {
+  plan: 'New issues arrive labelled and summarised, so a one-person project does not drown in triage.',
+  create: 'Every merge request gets a first review of contract and TypeScript changes before a human looks.',
+  verify: 'A bug in an escrow contract costs real money, so all four suites run on every push.',
+  package: 'Releases are built from the pipeline, not from a developer laptop.',
+  secure: 'Leaked keys and risky dependencies are found by scanners, then explained in plain words.',
+  release: 'The status you are reading is published by the pipeline itself.',
+  configure: 'Every service documents its variables and no example file holds a secret.',
+  monitor: 'An outage opens an incident issue instead of waiting for a user to complain.',
+  govern: 'Licences and repository policy rules are checked on every pipeline.',
+}
 const rows = stages
-  .map(([stage, what, link]) => `<tr><td><b>${esc(stage)}</b></td><td>${esc(what)}</td><td><a href="${esc(link)}">evidence</a></td></tr>`)
+  .map(([stage, what, link]) => `<tr><td><b>${esc(stage)}</b></td><td>${esc(what)}<div class="why">${esc(why[stage] ?? '')}</div></td><td><a href="${esc(link)}">evidence</a></td></tr>`)
   .join('\n')
+
+// Optional demo video: put the YouTube link in scripts/ci/demo-video.txt after uploading it.
+const videoUrl = (readText('scripts/ci/demo-video.txt') ?? '').trim()
+const videoId = /(?:youtu\.be\/|v=)([\w-]{11})/.exec(videoUrl)?.[1]
+const videoSection = videoId
+  ? `<h2>Demo video</h2><div class="video"><iframe src="https://www.youtube.com/embed/${esc(videoId)}" title="AgentEco life after code demo" allowfullscreen loading="lazy"></iframe></div><p><a href="${esc(videoUrl)}">Watch on YouTube</a></p>`
+  : ''
+
+const flows = [
+  ['Contract security reviewer', 'Reviews merge requests that touch contracts and writes one verdict.', `${project}/-/merge_requests/1`, 'MR !1: read the diff and found a real inaccuracy in a contract comment'],
+  ['Code reviewer', 'Reviews TypeScript changes in the SDK, backend, CLI and website.', `${project}/-/merge_requests/2`, 'MR !2: read the diff, checked callers and posted a review'],
+  ['Finding explainer', 'Explains scanner findings in plain words and proposes the smallest fix.', `${project}/-/merge_requests/2`, 'MR !2: grouped the critical findings and suggested excluding vendored code, which was applied'],
+  ['Issue triage', 'Labels and summarises new issues and asks for missing details.', `${project}/-/work_items/1`, 'Issue #1: labelled it bug and security and asked for a confidential report'],
+]
+const flowRows = flows
+  .map(([name, job, link, proof]) => `<tr><td><b>${esc(name)}</b></td><td>${esc(job)}</td><td><a href="${esc(link)}">${esc(proof)}</a></td></tr>`)
+  .join('\n')
+
+const diagram = `<svg viewBox="0 0 760 120" role="img" aria-label="Escrow flow: buyer funds escrow, seller delivers, buyer verifies, then settle or dispute" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+<g font-family="system-ui,sans-serif" font-size="13" text-anchor="middle" fill="currentColor">
+<rect x="4" y="30" width="130" height="56" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="69" y="63">Buyer funds escrow</text>
+<rect x="164" y="30" width="130" height="56" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="229" y="63">Seller delivers</text>
+<rect x="324" y="30" width="130" height="56" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="389" y="63">Buyer verifies</text>
+<rect x="484" y="6" width="130" height="44" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="549" y="33">Settle and pay</text>
+<rect x="484" y="66" width="130" height="44" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="549" y="93">Dispute</text>
+<rect x="644" y="66" width="112" height="44" rx="10" fill="none" stroke="currentColor" opacity=".5"/><text x="700" y="93">Arbiter rules</text>
+<path d="M134 58h30M294 58h30M454 50l30-18M454 66l30 20M614 88h30" stroke="currentColor" opacity=".6" fill="none"/>
+</g></svg>`
 
 const page = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -63,13 +103,25 @@ table{width:100%;border-collapse:collapse;background:var(--card);border:1px soli
 td,th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{color:var(--mut);font-weight:600}a{color:var(--acc)}pre{background:var(--card);border:1px solid var(--line);padding:14px;border-radius:12px;overflow:auto}
 .pill{display:inline-block;padding:2px 10px;border-radius:99px;border:1px solid var(--line);color:var(--ok);font-size:.85rem}
+.why{color:var(--mut);font-size:.9rem;margin-top:4px}
+.video{position:relative;padding-top:56.25%}.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:640px){.cols{grid-template-columns:1fr}}
 @media(max-width:640px){td,th{padding:8px}}
 </style></head><body><main>
 <h1>AgentEco: life after code</h1>
 <p class="lead">AgentEco is an escrow, dispute and reputation layer for AI agent work. This page is generated by the project's GitLab pipeline and shows what the automation did for the latest commit. All networks AgentEco uses are test networks.</p>
 <p><span class="pill">commit ${esc((env.CI_COMMIT_SHORT_SHA ?? 'local').slice(0, 8))}</span> <span class="pill">pipeline <a href="${esc(pipeline)}">${esc(env.CI_PIPELINE_ID ?? 'local')}</a></span> <span class="pill">built ${new Date().toISOString().slice(0, 16)}Z</span></p>
+<h2>What AgentEco is</h2>
+<p>AI agents are starting to hire and pay each other. AgentEco is the trust layer for that: the buyer locks the payment in an on-chain escrow, the seller delivers, the buyer checks the delivery, and the money is released or, if they disagree, an arbiter rules. Ratings are kept on chain. It is one person's open source project (SDK, CLI, backend, smart contracts, website), so every manual step after the code is written is a risk.</p>
+${diagram}
+<p>The running application lives at <a href="https://agenteco.web.id">agenteco.web.id</a> (the original project, not changed by this submission). This submission adds the post-code automation around it.</p>
+${videoSection}
 <h2>The nine stages</h2>
-<table><tr><th>Stage</th><th>What ran</th><th></th></tr>${rows}</table>
+<table><tr><th>Stage</th><th>What ran in the latest pipeline</th><th></th></tr>${rows}</table>
+<h2>The AI agents in the pipeline (GitLab Duo)</h2>
+<p>Four Duo flows, versioned as YAML in the repository. Each has run on a real merge request or issue. The first run of each one exposed a gap in its own configuration (missing diff tools, missing project id), which was fixed and is documented in <a href="${esc(project)}/-/blob/main/.gitlab/duo/README.md">.gitlab/duo/README.md</a>.</p>
+<table><tr><th>Flow</th><th>Job</th><th>What it did</th></tr>${flowRows}</table>
+<p class="why">Autonomy level: supervised. The flows comment and propose; a human approves and merges. The two merge requests and the issue are demo material, left open on purpose.</p>
 <h2>Security summary</h2><pre>${esc(securityMd ?? 'No scanner reports in this pipeline.')}</pre>
 <h2>Before and after</h2>
 <table><tr><th>Before (manual)</th><th>After (automated)</th></tr>

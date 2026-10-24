@@ -50,7 +50,7 @@ The `pages` job builds a public page from what the pipeline actually produced (t
 |---|---|
 | No CI. Tests run by hand before a release | Every push and merge request runs all suites |
 | One maintainer reading diffs alone | Duo flows review every merge request, a human approves |
-| Leaked keys or risky dependencies found by luck | Scanners on every pipeline, findings explained in plain language |
+| Leaked keys or risky dependencies found by luck | SAST and secret detection on every pipeline (dependency scanning is configured but currently produces no report), findings explained in plain language |
 | Outages noticed when a user complains | Scheduled checks open an incident issue |
 | The state of the project lives in the maintainer's head | A public status page generated from each pipeline |
 
@@ -93,7 +93,7 @@ The two merge requests and the issue are demo material: they are comment-only ch
 - All networks AgentEco uses are test networks. No real funds.
 - The pipeline has run on GitLab (21 Oct 2026): configure, verify (228 tests), package, the four scanners and govern pass. The first GitLab run found real problems, fixed in follow-up commits: jobs that did not install the packages their typecheck compiles, a Foundry job that could not write to a root-owned folder, a stale CLI test, and a policy job without git.
 - The four Duo flows were created from the YAML in `.gitlab/duo/flows/` in the GitLab UI, enabled with the default Mention / Assign / Assign reviewer triggers, and each has run once on GitLab (two merge requests and one issue, all demo material). Each first run exposed a gap in the flow's own YAML (missing diff tools, missing project id) that was fixed; details and links in [.gitlab/duo/README.md](.gitlab/duo/README.md).
-- The security scanners report 237 findings on the first run (10 critical, dependency lockfiles for the most part). They are reported, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
+- The security scanners reported 237 findings on the first run (10 critical, dependency lockfiles for the most part). In the latest pipeline SAST reports 71 findings (26 high) and secret detection finds none, but the dependency scanning jobs succeed without producing a report, so the latest counts do not include dependency findings (cause not yet diagnosed). Findings are reported, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
 - Five lint errors in existing frontend code are reported by the pipeline, not fixed: [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md).
 
 ## Project history
