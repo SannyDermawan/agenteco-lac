@@ -72,7 +72,7 @@ const flows = [
   ['Contract security reviewer', 'Reviews merge requests that touch contracts and writes one verdict.', `${project}/-/merge_requests/1`, 'MR !1: read the diff and found a real inaccuracy in a contract comment'],
   ['Code reviewer', 'Reviews TypeScript changes in the SDK, backend, CLI and website.', `${project}/-/merge_requests/2`, 'MR !2: read the diff, checked callers and posted a review'],
   ['Finding explainer', 'Explains scanner findings in plain words and proposes the smallest fix.', `${project}/-/merge_requests/2`, 'MR !2: grouped the critical findings and suggested excluding vendored code, which was applied'],
-  ['Issue triage', 'Labels and summarises new issues and asks for missing details.', `${project}/-/work_items/1`, 'Issue #1: labelled it bug and security and asked for a confidential report'],
+  ['Issue triage', 'Labels and summarises new issues and asks for missing details.', `${project}/-/blob/main/.gitlab/duo/README.md`, 'Issue #1 (members only view in some browsers): labelled it bug and security and asked for a confidential report; details in the Duo notes'],
 ]
 const flowRows = flows
   .map(([name, job, link, proof]) => `<tr><td><b>${esc(name)}</b></td><td>${esc(job)}</td><td><a href="${esc(link)}">${esc(proof)}</a></td></tr>`)
