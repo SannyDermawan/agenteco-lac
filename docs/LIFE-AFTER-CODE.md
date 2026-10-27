@@ -40,7 +40,7 @@ The whole AgentEco product: escrow v3 and the arbiter council (Solidity), the So
 
 ## Honest status
 
-- All networks AgentEco runs on are test networks. No real funds.
+- The current contracts (escrow v3, the arbiter council and the Solana program) run on test networks only, with no real funds. An earlier, escrow-only version of the contract is deployed on BOT Chain mainnet from a hackathon entry (GMT Build Week Vol. 2) and was not redeployed or changed here.
 - The pipeline jobs were developed and run locally first (Foundry, SDK, backend and CLI suites all green, frontend production build). GitLab pipeline runs and Duo flow runs are linked from the status site once they exist.
 - Five lint errors in existing frontend code are reported rather than fixed, see `docs/KNOWN-ISSUES.md`.
 - Duo flows follow the public schema; tool names still have to be confirmed in the Flow Builder, see `.gitlab/duo/README.md`.
