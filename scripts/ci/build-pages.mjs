@@ -128,7 +128,7 @@ ${videoSection}
 <table><tr><th>Before (manual)</th><th>After (automated)</th></tr>
 <tr><td>Run forge, SDK and backend tests by hand before a release</td><td>Every push runs all suites in the verify stage</td></tr>
 <tr><td>Read diffs alone, as the only maintainer</td><td>Duo reviewer flows comment on every merge request</td></tr>
-<tr><td>Check for leaked keys and risky dependencies occasionally</td><td>SAST, secret detection and dependency scanning on every pipeline, explained in plain language</td></tr>
+<tr><td>Check for leaked keys and risky dependencies occasionally</td><td>SAST and secret detection on every pipeline, explained in plain language (dependency scanning is configured but produces no report yet)</td></tr>
 <tr><td>Notice an outage when a user complains</td><td>Scheduled health checks open an incident issue</td></tr></table>
 <p>Source: <a href="${esc(project)}">${esc(project)}</a>. Original open source project: <a href="https://github.com/SannyDermawan/agenteco-multichain">github.com/SannyDermawan/agenteco-multichain</a> (MIT).</p>
 </main></body></html>
