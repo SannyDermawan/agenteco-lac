@@ -1,17 +1,66 @@
-# AgentEco: life after code
+<div align="center">
 
-**Post-code automation for an AI-agent escrow project, built on GitLab CI/CD and GitLab Duo Agent Platform.** Submission for the GitLab Transcend "Life After Code" hackathon, Path B ("Bring Your Own"), Supervised autonomy.
+<img src="frontend/asset/agenteco-logo-square-512.png" alt="AgentEco" width="140">
+
+# AgentEco: Life After Code
+
+**Everything after the code, automated on GitLab, for an AI-agent escrow project built by one person.**
+
+GitLab CI/CD runs the tests, security checks and releases. GitLab Duo Agent Platform flows review merge requests and explain scanner findings. A human approves.
+
+[**Status page**](https://agenteco-group.gitlab.io/agenteco-lac/) | [**Demo video**](https://www.youtube.com/watch?v=58LwTWKj294) | [**Pipelines**](https://gitlab.com/agenteco-group/agenteco-lac/-/pipelines) | [**Merge request !1**](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/1) | [**Merge request !2**](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) | [**Full write-up**](docs/LIFE-AFTER-CODE.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![GitLab CI/CD](https://img.shields.io/badge/GitLab-CI%2FCD-FC6D26)
+![GitLab Duo](https://img.shields.io/badge/GitLab%20Duo-Agent%20Platform-6E49CB)
+![GitLab Pages](https://img.shields.io/badge/GitLab-Pages-FC6D26)
+![Hackathon](https://img.shields.io/badge/Life%20After%20Code-Path%20B%20%7C%20Supervised-blue)
+![Networks](https://img.shields.io/badge/Contracts-test%20networks%20only-lightgrey)
 
-- Original open source project (MIT): [SannyDermawan/agenteco-multichain](https://github.com/SannyDermawan/agenteco-multichain)
-- GitLab project for this submission: [gitlab.com/agenteco-group/agenteco-lac](https://gitlab.com/agenteco-group/agenteco-lac)
-- What changed for this hackathon: [`pre-lac...main`](https://github.com/SannyDermawan/agenteco-lac/compare/pre-lac...main)
-- The full write-up, with the submission text and video script: [docs/LIFE-AFTER-CODE.md](docs/LIFE-AFTER-CODE.md)
+<img src="docs/screenshots/agenteco-landing.jpg" alt="The AgentEco landing page" width="720">
+
+</div>
+
+---
+
+## At a glance
+
+| | |
+|---|---|
+| **Hackathon** | GitLab Transcend, Life After Code. Path B ("Bring Your Own"), Supervised autonomy |
+| **Project** | [AgentEco](AGENTECO.md): AI agents hire each other with on-chain escrow, disputes and reputation |
+| **Original open source project (MIT)** | [SannyDermawan/agenteco-multichain](https://github.com/SannyDermawan/agenteco-multichain) |
+| **This GitLab project** | [gitlab.com/agenteco-group/agenteco-lac](https://gitlab.com/agenteco-group/agenteco-lac) |
+| **What changed for this hackathon** | [`pre-lac...main`](https://github.com/SannyDermawan/agenteco-lac/compare/pre-lac...main) |
+| **Result** | A nine-stage pipeline, four Duo flows and a public status page generated from the pipeline's own reports |
+
+---
 
 ## The problem
 
-[AgentEco](AGENTECO.md) lets AI agents hire each other with on-chain escrow, disputes and reputation. It is built by one person. AI made writing the code (Solidity contracts, an SDK, a backend, a website) much faster, but everything after the code stayed manual: running three test suites by hand, reading diffs alone, checking for leaked keys, remembering to look at the deployment. The repository had no CI at all, and it holds escrow logic. That is the risky half.
+AgentEco is built by one person. AI made writing the code (Solidity contracts, an SDK, a backend, a website) much faster, but everything after the code stayed manual: running three test suites by hand, reading diffs alone, checking for leaked keys, remembering to look at the deployment. The repository had no CI at all, and it holds escrow logic. That is the risky half.
+
+## The solution
+
+| Problem | How it is handled now |
+|---|---|
+| Tests run by hand before a release | Every push and merge request runs every suite |
+| One maintainer reading diffs alone | Duo flows review merge requests and post their findings; a human approves |
+| Leaked keys or risky code found by luck | SAST and secret detection on every pipeline, findings explained in plain language |
+| Outages noticed when a user complains | Scheduled health checks open an incident issue |
+| The state of the project lives in the maintainer's head | A public status page generated from each pipeline |
+
+```mermaid
+flowchart LR
+    A[Push or merge request] --> B[Nine-stage pipeline]
+    B --> C[Tests, packaging, scanners, license and policy checks]
+    C --> D[Status page on GitLab Pages]
+    A --> E[Duo flows]
+    E --> F[Review comments and plain-language security notes]
+    F --> G[Human approves]
+```
+
+---
 
 ## What this adds
 
@@ -44,6 +93,29 @@ Install steps (flows are created in the GitLab UI): [.gitlab/duo/README.md](.git
 
 The `pages` job builds a public page from what the pipeline actually produced (test counts from the jobs' own reports, the security summary, license and policy results), so the page is generated evidence, not typed-in claims. It stays up between pipelines.
 
+<div align="center">
+<img src="docs/screenshots/agenteco-marketplace.jpg" alt="The AgentEco marketplace" width="720">
+<br>
+<sub>The product the pipeline protects: the AgentEco marketplace (test network).</sub>
+</div>
+
+---
+
+## Evidence you can open
+
+Everything below is public on GitLab and was produced by the pipeline and the Duo flows, not typed in.
+
+| Claim | Where to look |
+|---|---|
+| The nine-stage pipeline runs, with history | [Pipelines](https://gitlab.com/agenteco-group/agenteco-lac/-/pipelines) (`main` is green) |
+| The status page is generated from the pipeline and stays up | [agenteco-group.gitlab.io/agenteco-lac](https://agenteco-group.gitlab.io/agenteco-lac/) |
+| The contract security reviewer read a diff and found a real inaccuracy | [Merge request !1](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/1) |
+| The code reviewer and the finding explainer ran on a merge request | [Merge request !2](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) |
+| The triage flow labelled an issue and asked for missing details | [Duo notes](.gitlab/duo/README.md) (the issue itself is #1 in the project; GitLab's issue page may not load for signed-out visitors) |
+| What each flow got wrong on its first run, and the fix | [.gitlab/duo/README.md](.gitlab/duo/README.md) |
+
+The two merge requests and the issue are demo material: they are comment-only changes made to exercise the flows, and are left open on purpose (do not merge).
+
 ## Before and after
 
 | Before | After |
@@ -73,20 +145,7 @@ node scripts/ci/policy-check.mjs                  # repository policy rules
 node scripts/ci/license-check.mjs                 # dependency licenses
 ```
 
-## Evidence you can open
-
-Everything below is public on GitLab and was produced by the pipeline and the Duo flows, not typed in.
-
-| Claim | Where to look |
-|---|---|
-| The nine-stage pipeline runs, with history | [Pipelines](https://gitlab.com/agenteco-group/agenteco-lac/-/pipelines) (`main` is green) |
-| The status page is generated from the pipeline and stays up | [agenteco-group.gitlab.io/agenteco-lac](https://agenteco-group.gitlab.io/agenteco-lac/) |
-| The contract security reviewer read a diff and found a real inaccuracy | [Merge request !1](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/1) |
-| The code reviewer and the finding explainer ran on a merge request | [Merge request !2](https://gitlab.com/agenteco-group/agenteco-lac/-/merge_requests/2) |
-| The triage flow labelled an issue and asked for missing details | [Duo notes](.gitlab/duo/README.md) (the issue itself is #1 in the project; GitLab's issue page may not load for signed-out visitors) |
-| What each flow got wrong on its first run, and the fix | [.gitlab/duo/README.md](.gitlab/duo/README.md) |
-
-The two merge requests and the issue are demo material: they are comment-only changes made to exercise the flows, and are left open on purpose (do not merge).
+---
 
 ## Honest status
 
@@ -108,6 +167,8 @@ AgentEco grew in three stages across three repositories, all sharing one history
 | 10 to 13 Oct | One-prompt onboarding with the staged `hire()` SDK, CLI and MCP server; Solana program and adapter; deployments with proof runs on Base, Ethereum, Arbitrum and Tempo testnets and BOT Chain; ERC-8004 identity ([agenteco-multichain](https://github.com/SannyDermawan/agenteco-multichain), 150 commits) |
 | 17 Oct | Tag `pre-lac`: the baseline for this hackathon |
 | 20 Oct onward | The work in this repository |
+
+---
 
 ## License
 
